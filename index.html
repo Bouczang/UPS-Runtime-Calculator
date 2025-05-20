@@ -1,137 +1,164 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>UPS Runtime Calculator (Advanced)</title>
+    <title>Advanced UPS Runtime Calculator</title>
     <style>
         body {
             font-family: Arial, sans-serif;
             line-height: 1.6;
             margin: 20px;
+            background: #f5f5f5;
         }
         #ups-calculator {
-            max-width: 600px;
+            max-width: 650px;
             margin: 0 auto;
-            padding: 20px;
+            padding: 25px;
             border: 1px solid #ddd;
-            border-radius: 8px;
-            background: #f9f9f9;
+            border-radius: 10px;
+            background: white;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
         }
         h2 {
-            color: #333;
+            color: #2c3e50;
             text-align: center;
+            margin-bottom: 20px;
         }
         label {
             display: inline-block;
-            width: 250px;
+            width: 280px;
             margin-bottom: 8px;
             font-weight: bold;
         }
         input, select {
-            padding: 8px;
-            border: 1px solid #ccc;
+            padding: 8px 12px;
+            border: 1px solid #ddd;
             border-radius: 4px;
-            width: 120px;
+            width: 150px;
+            margin-bottom: 10px;
         }
         button {
             display: block;
-            margin: 20px auto;
-            padding: 10px 20px;
-            background: #0066cc;
+            margin: 25px auto;
+            padding: 12px 25px;
+            background: #3498db;
             color: white;
             border: none;
             border-radius: 4px;
             cursor: pointer;
             font-size: 16px;
+            transition: background 0.3s;
         }
         button:hover {
-            background: #0055aa;
+            background: #2980b9;
         }
         #result {
-            margin-top: 20px;
-            padding: 15px;
-            background: #e9f7fe;
-            border-radius: 4px;
-            border-left: 4px solid #0066cc;
+            margin-top: 25px;
+            padding: 20px;
+            background: #eaf7ff;
+            border-radius: 5px;
+            border-left: 4px solid #3498db;
         }
-        #custom-config {
-            margin-top: 10px;
-            padding: 10px;
-            background: #f0f0f0;
-            border-radius: 4px;
+        .config-section {
+            background: #f9f9f9;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 15px;
+        }
+        .warning {
+            color: #e74c3c;
+            font-weight: bold;
         }
     </style>
 </head>
 <body>
     <div id="ups-calculator">
-        <h2>UPS Runtime Calculator</h2>
-        <div>
-            <label for="battery-capacity">Single Battery Capacity (Ah):</label>
-            <input type="number" id="battery-capacity" step="0.1" placeholder="e.g., 100">
+        <h2>Advanced UPS Runtime Calculator</h2>
+        
+        <div class="config-section">
+            <h3>Battery Configuration</h3>
+            <div>
+                <label for="battery-capacity">Single Battery Capacity (Ah):</label>
+                <input type="number" id="battery-capacity" step="0.1" placeholder="e.g., 100" value="100">
+            </div>
+            <div>
+                <label for="battery-voltage">Single Battery Voltage (V):</label>
+                <input type="number" id="battery-voltage" value="12">
+            </div>
+            <div>
+                <label for="battery-count">Total Number of Batteries:</label>
+                <input type="number" id="battery-count" value="4">
+            </div>
+            <div>
+                <label for="arrangement">Battery Arrangement:</label>
+                <select id="arrangement">
+                    <option value="parallel">Parallel (↑ Capacity, Voltage same)</option>
+                    <option value="series">Series (↑ Voltage, Capacity same)</option>
+                    <option value="custom">Custom (Series-Parallel)</option>
+                </select>
+            </div>
+            <div id="custom-config" style="display: none;">
+                <label for="series-count">Batteries in Series per String:</label>
+                <input type="number" id="series-count" value="2" min="1">
+                <label for="parallel-strings">Parallel Strings:</label>
+                <input type="number" id="parallel-strings" value="2" min="1">
+            </div>
         </div>
-        <div>
-            <label for="battery-voltage">Single Battery Voltage (V):</label>
-            <input type="number" id="battery-voltage" value="12">
+ 
+        <div class="config-section">
+            <h3>Load Configuration</h3>
+            <div>
+                <label for="load-power">Load Power (W):</label>
+                <input type="number" id="load-power" placeholder="e.g., 500" value="500">
+            </div>
+            <div>
+                <label for="efficiency">Efficiency Factor (0.8-1.0):</label>
+                <input type="number" id="efficiency" value="0.9" step="0.01" min="0.8" max="1.0">
+            </div>
         </div>
-        <div>
-            <label for="battery-count">Total Number of Batteries:</label>
-            <input type="number" id="battery-count" value="4">
-        </div>
-        <div>
-            <label for="arrangement">Battery Arrangement:</label>
-            <select id="arrangement">
-                <option value="parallel">Parallel (↑ Capacity, Voltage same)</option>
-                <option value="series">Series (↑ Voltage, Capacity same)</option>
-                <option value="custom">Custom (Series-Parallel)</option>
-            </select>
-        </div>
-        <div id="custom-config" style="display: none;">
-            <label for="series-count">Batteries in Series per String:</label>
-            <input type="number" id="series-count" value="2" min="1">
-            <label for="parallel-strings">Parallel Strings:</label>
-            <input type="number" id="parallel-strings" value="2" min="1">
-        </div>
-        <div>
-            <label for="load-power">Load Power (W):</label>
-            <input type="number" id="load-power" placeholder="e.g., 500">
-        </div>
-        <div>
-            <label for="efficiency">Efficiency Factor (0.8-1.0):</label>
-            <input type="number" id="efficiency" value="0.9" step="0.01" min="0.8" max="1.0">
-        </div>
-        <div>
+ 
+        <div class="config-section">
             <h3>Cable Voltage Drop</h3>
-            <label for= "cable-length">Cable Length (meters):</label>
-            <input type="number" id="cable-length" value="5" min="0">
+            <div>
+                <label for="cable-length">Cable Length (meters):</label>
+                <input type="number" id="cable-length" value="5" min="0">
+            </div>
+            <div>
+                <label for="cable-size">Cable Size (mm²):</label>
+                <select id="cable-size">
+                    <option value="0.0032">16 mm² (0.0032 Ω/m)</option>
+                    <option value="0.0050" selected>10 mm² (0.0050 Ω/m)</option>
+                    <option value="0.0080">6 mm² (0.0080 Ω/m)</option>
+                    <option value="custom">Custom Resistance...</option>
+                </select>
+            </div>
+            <div id="custom-resistance" style="display:none;">
+                <label for="cable-resistance">Custom Resistance (Ω/m):</label>
+                <input type="number" id="cable-resistance" step="0.0001" min="0">
+            </div>
         </div>
-        <div>
-            <label for="cable-gauge">Cable Gauge (AWG):</label>
-            <select id="cable-gauge">
-                <option value="0.0032">6 AWG (0.0032 Ohm/m)</option>
-                <option value="0.0051" selected>10 AWG (0.0051 Ohm/m)</option>
-                <option value="0.0081">14 AWG (0.0082 Ohm/m)</option>
-                <option value="custom">Custom Resistance...</option>
-            </select>
-        </div>
-        <div id="custom-resistance" style="display:none;">
-            <label for="cable-resistance">Custom Resistance (Ohm/m):</label>
-            <input type="number" id="cable-resistance" step="0.0001" min="0">
-        </div>
+ 
         <button id="calculate-btn">Calculate Runtime</button>
         <div id="result"></div>
     </div>
  
     <script>
-        // Toggle custom config visibility
+        // Toggle custom battery config
         document.getElementById('arrangement').addEventListener('change', function() {
-            const customConfig = document.getElementById('custom-config');
-customConfig.style.display = this.value === 'custom' ? 'block' : 'none';
+            document.getElementById('custom-config').style.display =
+                this.value === 'custom' ? 'block' : 'none';
         });
  
-        // Calculate runtime when button is clicked
+        // Toggle custom cable resistance
+        document.getElementById('cable-size').addEventListener('change', function() {
+            document.getElementById('custom-resistance').style.display =
+                this.value === 'custom' ? 'block' : 'none';
+        });
+ 
+        // Calculate runtime
         document.getElementById('calculate-btn').addEventListener('click', calculateRuntime);
  
         function calculateRuntime() {
-            // Get input values
+            // Get battery inputs
             const capacity = parseFloat(document.getElementById('battery-capacity').value);
             const voltage = parseFloat(document.getElementById('battery-voltage').value);
             const totalBatteries = parseFloat(document.getElementById('battery-count').value);
@@ -139,13 +166,13 @@ customConfig.style.display = this.value === 'custom' ? 'block' : 'none';
             const efficiency = parseFloat(document.getElementById('efficiency').value);
             const arrangement = document.getElementById('arrangement').value;
  
-            // Validate inputs
+            // Validate battery inputs
             if (isNaN(capacity) || isNaN(voltage) || isNaN(totalBatteries) || isNaN(load) || isNaN(efficiency)) {
-                alert("Please fill in all fields with valid numbers!");
+                alert("Please fill in all battery/load fields with valid numbers!");
                 return;
             }
  
-            // Calculate total voltage and capacity based on arrangement
+            // Calculate battery bank configuration
             let totalV, totalAh;
             switch (arrangement) {
                 case 'parallel':
@@ -164,7 +191,7 @@ customConfig.style.display = this.value === 'custom' ? 'block' : 'none';
                         return;
                     }
                     if (seriesCount * parallelStrings !== totalBatteries) {
-                        alert(`Custom configuration error: ${seriesCount} series × ${parallelStrings} parallel = ${seriesCount * parallelStrings} batteries, but you specified ${totalBatteries}.`);
+                        alert(`Custom config error: ${seriesCount}s × ${parallelStrings}p = ${seriesCount * parallelStrings} batteries (you entered ${totalBatteries}).`);
                         return;
                     }
                     totalV = voltage * seriesCount;
@@ -174,48 +201,50 @@ customConfig.style.display = this.value === 'custom' ? 'block' : 'none';
                     alert("Invalid battery arrangement!");
                     return;
             }
-
-            // Cable Length DeltaV
+ 
+            // Get cable inputs
             const cableLength = parseFloat(document.getElementById('cable-length').value);
-            const cableGuage = document.getElementById('cable-guage').value);
+            const cableSize = document.getElementById('cable-size').value;
             let cableResistance;
-
-            if (cableGuage === 'custom') {
+ 
+            if (cableSize === 'custom') {
                 cableResistance = parseFloat(document.getElementById('cable-resistance').value);
-                if (isNAN(cableResistance)) {
-                    alert("Please enter a valid custom cable resistance");
+                if (isNaN(cableResistance)) {
+                    alert("Please enter a valid custom cable resistance!");
                     return;
                 }
             } else {
-                cableResistance = parseFloat(cableGauge);
-            }
-
-            // Calculate Current (I)
-            const current = load / (totalV * efficiency);
-            // For AC loads, constant current = load / (totalV * efficiency * powerFactor)
-
-            // Calculate (ΔV)
-            const voltageDrop = current *cableResistance * cableLength * 2;
-
-            // Adjust runtime if voltage drop >5% (optional derating)
-            let runtimeDerating = 1;
-            if (voltageDrop > 0.05 * totalV) {
-                runtimeDerating = 0.95; // 5% penalty if 5% ΔV.
+                cableResistance = parseFloat(cableSize);
             }
  
-            // Calculate runtime
+            // Calculate current and voltage drop
+            const current = load / (totalV * efficiency); // DC current
+            const voltageDrop = current * cableResistance * cableLength * 2; // Round-trip
+            const effectiveVoltage = totalV - voltageDrop;
+ 
+            // Calculate runtime (with derating if voltage drop >5%)
             const totalWh = totalV * totalAh * efficiency;
-            const runtimeHours = totalWh / load;
+            let runtimeHours = totalWh / load;
+            if (voltageDrop > 0.05 * totalV) {
+                runtimeHours *= 0.95; // 5% penalty for high voltage drop
+            }
             const runtimeMinutes = runtimeHours * 60;
  
-            // Display result
+            // Display results
             const resultDiv = document.getElementById('result');
             resultDiv.innerHTML = `
-                <h3>Battery Bank Configuration:</h3>
-                <p>Total Voltage: <strong>${totalV}V</strong></p>
-                <p>Total Capacity: <strong>${totalAh}Ah</strong></p>
-                <p>Total Energy: <strong>${totalWh.toFixed(0)}Wh</strong></p>
-                <h3>Estimated Runtime:</h3>
+                <h3>Battery Bank Configuration</h3>
+                <p>Total Voltage: <strong>${totalV.toFixed(2)}V</strong></p>
+                <p>Total Capacity: <strong>${totalAh.toFixed(2)}Ah</strong></p>
+                <p>Total Energy: <strong>${(totalWh).toFixed(0)}Wh</strong></p>
+ 
+                <h3>Cable Voltage Drop</h3>
+                <p>Current: <strong>${current.toFixed(2)}A</strong></p>
+                <p>Voltage Drop: <strong>${voltageDrop.toFixed(2)}V</strong> (${((voltageDrop/totalV)*100).toFixed(1)}%)</p>
+                <p>Effective Voltage: <strong>${effectiveVoltage.toFixed(2)}V</strong></p>
+                ${voltageDrop > 0.05 * totalV ? "<p class='warning'>Warning: High voltage drop! Consider thicker/shorter cables.</p>" : ""}
+ 
+                <h3>Estimated Runtime</h3>
                 <p><strong>${runtimeHours.toFixed(2)} hours</strong> (${Math.floor(runtimeHours)}h ${Math.floor((runtimeHours % 1) * 60)}m)</p>
                 <p><strong>${Math.round(runtimeMinutes)} minutes</strong></p>
             `;
