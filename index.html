@@ -72,7 +72,7 @@
 </head>
 <body>
     <div id="ups-calculator">
-        <h2>Advanced UPS Runtime Calculator</h2>
+        <h2>UPS Runtime Calculator</h2>
         
         <div class="config-section">
             <h3>Battery Configuration</h3>
@@ -245,10 +245,25 @@
                 ${voltageDrop > 0.05 * totalV ? "<p class='warning'>Warning: High voltage drop! Consider thicker/shorter cables.</p>" : ""}
  
                 <h3>Estimated Runtime</h3>
-                <p><strong>${runtimeHours.toFixed(2)} hours</strong> (${Math.floor(runtimeHours)}h ${Math.floor((runtimeHours % 1) * 60)}m)</p>
-                <p><strong>${Math.round(runtimeMinutes)} minutes</strong></p>
+                <p>Estimated Runtime</h3>
+                <p><strong>Detailed:</strong> ${formatDHM(runtimeMinutes)}</p>
+                <p><strong>Decimal Hours:</strong> ${runtimeHours.toFixed(2)} hours</p>
+                <p><strong>Total Minutes:</strong> ${Math.round(runtimeMinutes)} minutes</p>
             `;
         }
+
+        function formatHoursDHM(totalMinutes) {
+            const days = Math.floor(totalMinutes / 1440);
+            const remainingMinutes = totalMinutes % 1440;
+            const hours = Math.floor(remainingMinutes / 60);
+            const minutes = Math.floor(remainingMinutes % 60);
+
+            let result = []
+            if (days > 0) result.push('${days} day${days !== 1 ? 's' : ''}');
+            if (hours > 0) result.push('${hours} hour${hours !== 1 ? 's' : ''}');
+            if (minutes > 0 || result.length === 0) result.push('${minutes} minute${minutes !== 1 ? 's' : ''}');
+            
+            return result.join(' ');
     </script>
 </body>
 </html>
