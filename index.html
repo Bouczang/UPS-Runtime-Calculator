@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Advanced UPS Runtime Calculator</title>
+    <title>UPS Runtime Calculator</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -140,8 +140,23 @@
         <button id="calculate-btn">Calculate Runtime</button>
         <div id="result"></div>
     </div>
- 
+    
     <script>
+        // Helper function to format runtime
+        function formatRuntime(totalMinutes) {
+            totalMinutes = Math.round(totalMinutes);
+            const days = Math.floor(totalMinutes / 1440);
+            const hours = Math.floor((totalMinutes % 1440) / 60);
+            const minutes = totalMinutes % 60;
+            
+            let parts = [];
+            if (days > 0) parts.push(`${days} day${days !== 1 ? 's' : ''}`);
+            if (hours > 0) parts.push(`${hours} hour${hours !== 1 ? 's' : ''}`);
+            if (minutes > 0 || parts.length === 0) parts.push(`${minutes} minute${minutes !== 1 ? 's' : ''}`);
+            
+            return parts.join(' ');
+        }
+ 
         // Toggle custom battery config
         document.getElementById('arrangement').addEventListener('change', function() {
             document.getElementById('custom-config').style.display =
@@ -158,77 +173,16 @@
         document.getElementById('calculate-btn').addEventListener('click', calculateRuntime);
  
         function calculateRuntime() {
-            // Get battery inputs
-            const capacity = parseFloat(document.getElementById('battery-capacity').value);
-            const voltage = parseFloat(document.getElementById('battery-voltage').value);
-            const totalBatteries = parseFloat(document.getElementById('battery-count').value);
-            const load = parseFloat(document.getElementById('load-power').value);
-            const efficiency = parseFloat(document.getElementById('efficiency').value);
-            const arrangement = document.getElementById('arrangement').value;
- 
-            // Validate battery inputs
-            if (isNaN(capacity) || isNaN(voltage) || isNaN(totalBatteries) || isNaN(load) || isNaN(efficiency)) {
-                alert("Please fill in all battery/load fields with valid numbers!");
-                return;
-            }
- 
-            // Calculate battery bank configuration
-            let totalV, totalAh;
-            switch (arrangement) {
-                case 'parallel':
-                    totalV = voltage;
-                    totalAh = capacity * totalBatteries;
-                    break;
-                case 'series':
-                    totalV = voltage * totalBatteries;
-                    totalAh = capacity;
-                    break;
-                case 'custom':
-                    const seriesCount = parseFloat(document.getElementById('series-count').value);
-                    const parallelStrings = parseFloat(document.getElementById('parallel-strings').value);
-                    if (isNaN(seriesCount) || isNaN(parallelStrings)) {
-                        alert("Please specify valid series/parallel values!");
-                        return;
-                    }
-                    if (seriesCount * parallelStrings !== totalBatteries) {
-                        alert(`Custom config error: ${seriesCount}s × ${parallelStrings}p = ${seriesCount * parallelStrings} batteries (you entered ${totalBatteries}).`);
-                        return;
-                    }
-                    totalV = voltage * seriesCount;
-                    totalAh = capacity * parallelStrings;
-                    break;
-                default:
-                    alert("Invalid battery arrangement!");
-                    return;
-            }
- 
-            // Get cable inputs
-            const cableLength = parseFloat(document.getElementById('cable-length').value);
-            const cableSize = document.getElementById('cable-size').value;
-            let cableResistance;
- 
-            if (cableSize === 'custom') {
-                cableResistance = parseFloat(document.getElementById('cable-resistance').value);
-                if (isNaN(cableResistance)) {
-                    alert("Please enter a valid custom cable resistance!");
-                    return;
-                }
-            } else {
-                cableResistance = parseFloat(cableSize);
-            }
- 
-            // Calculate current and voltage drop
-            const current = load / (totalV * efficiency); // DC current
-            const voltageDrop = current * cableResistance * cableLength * 2; // Round-trip
-            const effectiveVoltage = totalV - voltageDrop;
+            // [Keep all your existing input collection and validation code]
  
             // Calculate runtime (with derating if voltage drop >5%)
             const totalWh = totalV * totalAh * efficiency;
             let runtimeHours = totalWh / load;
+            const runtimeMinutes = runtimeHours * 60;
+            
             if (voltageDrop > 0.05 * totalV) {
                 runtimeHours *= 0.95; // 5% penalty for high voltage drop
             }
-            const runtimeMinutes = runtimeHours * 60;
  
             // Display results
             const resultDiv = document.getElementById('result');
@@ -245,25 +199,10 @@
                 ${voltageDrop > 0.05 * totalV ? "<p class='warning'>Warning: High voltage drop! Consider thicker/shorter cables.</p>" : ""}
  
                 <h3>Estimated Runtime</h3>
-                <p>Estimated Runtime</h3>
-                <p><strong>Detailed:</strong> ${formatDHM(runtimeMinutes)}</p>
-                <p><strong>Decimal Hours:</strong> ${runtimeHours.toFixed(2)} hours</p>
-                <p><strong>Total Minutes:</strong> ${Math.round(runtimeMinutes)} minutes</p>
+                <p><strong>${formatRuntime(runtimeMinutes)}</strong></p>
+                <p>(${runtimeHours.toFixed(2)} hours / ${Math.round(runtimeMinutes)} minutes)</p>
             `;
         }
-
-        function formatHoursDHM(totalMinutes) {
-            const days = Math.floor(totalMinutes / 1440);
-            const remainingMinutes = totalMinutes % 1440;
-            const hours = Math.floor(remainingMinutes / 60);
-            const minutes = Math.floor(remainingMinutes % 60);
-
-            let result = []
-            if (days > 0) result.push('${days} day${days !== 1 ? 's' : ''}');
-            if (hours > 0) result.push('${hours} hour${hours !== 1 ? 's' : ''}');
-            if (minutes > 0 || result.length === 0) result.push('${minutes} minute${minutes !== 1 ? 's' : ''}');
-            
-            return result.join(' ');
     </script>
 </body>
 </html>
