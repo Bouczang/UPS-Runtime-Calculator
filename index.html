@@ -6,30 +6,43 @@
         #ups-calculator {
             font-family: Arial, sans-serif;
             max-width: 500px;
-            margin: 0 auto;
+            margin: 20px auto;
             padding: 20px;
             border: 1px solid #ccc;
             border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
         }
         #ups-calculator div {
-            margin-bottom: 10px;
+            margin-bottom: 15px;
         }
         label {
             display: inline-block;
             width: 200px;
+            font-weight: bold;
+        }
+        input {
+            padding: 8px;
+            width: 100px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
         }
         button {
-            padding: 8px 15px;
+            padding: 10px 20px;
             background: #0066cc;
             color: white;
             border: none;
             border-radius: 4px;
             cursor: pointer;
+            font-size: 16px;
+        }
+        button:hover {
+            background: #0055aa;
         }
         #result {
             margin-top: 20px;
-            padding: 10px;
+            padding: 15px;
             background: #f5f5f5;
+            border-radius: 4px;
         }
     </style>
 </head>
@@ -38,43 +51,55 @@
         <h2>UPS Runtime Calculator</h2>
         <div>
             <label for="battery-capacity">Battery Capacity (Ah):</label>
-            <input type="number" id="battery-capacity" step="0.1">
+            <input type="number" id="battery-capacity" step="0.1" placeholder="e.g., 100">
         </div>
-        <!-- REST OF YOUR HTML FORM HERE -->
+        <div>
+            <label for="battery-voltage">Battery Voltage (V):</label>
+            <input type="number" id="battery-voltage" value="12">
+        </div>
+        <div>
+            <label for="battery-count">Number of Batteries:</label>
+            <input type="number" id="battery-count" value="1">
+        </div>
+        <div>
+            <label for="load-power">Load Power (W):</label>
+            <input type="number" id="load-power" placeholder="e.g., 300">
+        </div>
+        <div>
+            <label for="efficiency">Efficiency Factor:</label>
+            <input type="number" id="efficiency" value="0.9" step="0.01" min="0.8" max="1.0">
+        </div>
         <button onclick="calculateRuntime()">Calculate Runtime</button>
         <div id="result"></div>
     </div>
-
+ 
     <script>
         function calculateRuntime() {
-            // YOUR JAVASCRIPT CODE HERE
-          function calculateRuntime() {
-    // Get input values
-    const capacity = parseFloat(document.getElementById('battery-capacity').value);
-    const voltage = parseFloat(document.getElementById('battery-voltage').value);
-    const count = parseFloat(document.getElementById('battery-count').value);
-    const load = parseFloat(document.getElementById('load-power').value);
-    const efficiency = parseFloat(document.getElementById('efficiency').value);
-    
-    // Validate inputs
-    if (isNaN(capacity) || isNaN(voltage) || isNaN(count) || isNaN(load) || isNaN(efficiency)) {
-        alert("Please fill in all fields with valid numbers");
-        return;
-    }
-    
-    // Calculate runtime in minutes
-    const totalWh = capacity * voltage * count * efficiency;
-    const runtimeHours = totalWh / load;
-    const runtimeMinutes = runtimeHours * 60;
-    
-    // Display result
-    const resultDiv = document.getElementById('result');
-    resultDiv.innerHTML = `
-        <h3>Estimated Runtime:</h3>
-        <p>${runtimeHours.toFixed(2)} hours (${Math.floor(runtimeHours)}h ${Math.floor((runtimeHours % 1) * 60)}m)</p>
-        <p>or ${runtimeMinutes.toFixed(0)} minutes</p>
-    `;
-}
+            // Get input values
+            const capacity = parseFloat(document.getElementById('battery-capacity').value);
+            const voltage = parseFloat(document.getElementById('battery-voltage').value);
+            const count = parseFloat(document.getElementById('battery-count').value);
+            const load = parseFloat(document.getElementById('load-power').value);
+            const efficiency = parseFloat(document.getElementById('efficiency').value);
+            
+            // Validate inputs
+            if (isNaN(capacity) || isNaN(voltage) || isNaN(count) || isNaN(load) || isNaN(efficiency)) {
+                alert("Please fill in all fields with valid numbers!");
+                return;
+            }
+            
+            // Calculate runtime
+            const totalWh = capacity * voltage * count * efficiency;
+            const runtimeHours = totalWh / load;
+            const runtimeMinutes = runtimeHours * 60;
+            
+            // Display result
+            const resultDiv = document.getElementById('result');
+            resultDiv.innerHTML = `
+                <h3>Estimated Runtime:</h3>
+                <p><strong>${runtimeHours.toFixed(2)} hours</strong> (${Math.floor(runtimeHours)}h ${Math.floor((runtimeHours % 1) * 60)}m)</p>
+                <p>or <strong>${Math.round(runtimeMinutes)} minutes</strong></p>
+            `;
         }
     </script>
 </body>
