@@ -69,36 +69,84 @@
             <label for="efficiency">Efficiency Factor:</label>
             <input type="number" id="efficiency" value="0.9" step="0.01" min="0.8" max="1.0">
         </div>
+        <div>
+            <label for="arrangement">Battery Arrangement:</label>
+    <select id="arrangement">
+        <option value="parallel">Parallel (↑ Ah, Voltage same)</option>
+        <option value="series">Series (↑ Voltage, Ah same)</option>
+        <option value="custom">Custom (Specify below)</option>
+    </select>
+</div>
+<div id="custom-config" style="display:none;">
+    <label for="series-count">Batteries in Series per String:</label>
+    <input type="number" id="series-count" value="1" min="1">
+    <label for="parallel-strings">Parallel Strings:</label>
+    <input type="number" id="parallel-strings" value="1" min="1">
+</div>
         <button onclick="calculateRuntime()">Calculate Runtime</button>
         <div id="result"></div>
     </div>
  
     <script>
-        function calculateRuntime() {
-            // Get input values
-            const capacity = parseFloat(document.getElementById('battery-capacity').value);
-            const voltage = parseFloat(document.getElementById('battery-voltage').value);
-            const count = parseFloat(document.getElementById('battery-count').value);
-            const load = parseFloat(document.getElementById('load-power').value);
-            const efficiency = parseFloat(document.getElementById('efficiency').value);
-            
-            // Validate inputs
-            if (isNaN(capacity) || isNaN(voltage) || isNaN(count) || isNaN(load) || isNaN(efficiency)) {
-                alert("Please fill in all fields with valid numbers!");
-                return;
-            }
-            
-            // Calculate runtime
-            const totalWh = capacity * voltage * count * efficiency;
-            const runtimeHours = totalWh / load;
-            const runtimeMinutes = runtimeHours * 60;
-            
-            // Display result
-            const resultDiv = document.getElementById('result');
-            resultDiv.innerHTML = `
-                <h3>Estimated Runtime:</h3>
-                <p><strong>${runtimeHours.toFixed(2)} hours</strong> (${Math.floor(runtimeHours)}h ${Math.floor((runtimeHours % 1) * 60)}m)</p>
-                <p>or <strong>${Math.round(runtimeMinutes)} minutes</strong></p>
+       function calculateRuntime() {
+    // Get inputs
+    const capacity = parseFloat(document.getElementById('battery-capacity').value);
+    const voltage = parseFloat(document.getElementById('battery-voltage').value);
+    const totalBatteries = parseFloat(document.getElementById('battery-count').value);
+    const load = parseFloat(document.getElementById('load-power').value);
+    const efficiency = parseFloat(document.getElementById('efficiency').value);
+    const arrangement = document.getElementById('arrangement').value;
+ 
+    // Custom config (if enabled)
+    let seriesCount = 1, parallelStrings = 1;
+    if (arrangement === 'custom') {
+        seriesCount = parseFloat(document.getElementById('series-count').value);
+        parallelStrings = parseFloat(document.getElementById('parallel-strings').value);
+    }
+ 
+    // Validate
+    if ([capacity, voltage, totalBatteries, load, efficiency].some(isNaN)) {
+        alert("Please fill all fields with valid numbers!");
+        return;
+    }
+ 
+    // Calculate total voltage and Ah based on arrangement
+    let totalV, totalAh;
+    switch (arrangement) {
+        case 'series':
+            totalV = voltage * totalBatteries;
+            totalAh = capacity;
+            break;
+        case 'parallel':
+            totalV = voltage;
+            totalAh = capacity * totalBatteries;
+            break;
+        case 'custom':
+            totalV = voltage * seriesCount;
+            totalAh = capacity * parallelStrings;
+            break;
+    }
+ 
+    // Runtime calculation
+    const totalWh = totalV * totalAh * efficiency;
+    const runtimeHours = totalWh / load;
+    const runtimeMinutes = runtimeHours * 60;
+ 
+    // Display result
+    document.getElementById('result').innerHTML = `
+        <h3>Configuration:</h3>
+        <p>Total Voltage: <strong>${totalV}V</strong></p>
+        <p>Total Capacity: <strong>${totalAh}Ah</strong></p>
+        <h3>Estimated Runtime:</h3>
+        <p><strong>${runtimeHours.toFixed(2)} hours</strong> (${Math.floor(runtimeHours)}h ${Math.floor((runtimeHours % 1) * 60)}m)</p>
+    `;
+}
+ 
+// Show/hide custom config
+document.getElementById('arrangement').addEventListener('change', function() {
+    document.getElementById('custom-config').style.display =
+        this.value === 'custom' ? 'block' : 'none';
+});
             `;
         }
     </script>
