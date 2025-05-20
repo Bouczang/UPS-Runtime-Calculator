@@ -63,7 +63,7 @@
 </head>
 <body>
     <div id="ups-calculator">
-        <h2>UPS Runtime Calculator (Advanced)</h2>
+        <h2>UPS Runtime Calculator</h2>
         <div>
             <label for="battery-capacity">Single Battery Capacity (Ah):</label>
             <input type="number" id="battery-capacity" step="0.1" placeholder="e.g., 100">
@@ -97,6 +97,24 @@
         <div>
             <label for="efficiency">Efficiency Factor (0.8-1.0):</label>
             <input type="number" id="efficiency" value="0.9" step="0.01" min="0.8" max="1.0">
+        </div>
+        <div>
+            <h3>Cable Voltage Drop</h3>
+            <label for= "cable-length">Cable Length (meters):</label>
+            <input type="number" id="cable-length" value="5" min="0">
+        </div>
+        <div>
+            <label for="cable-gauge">Cable Gauge (AWG):</label>
+            <select id="cable-gauge">
+                <option value="0.0032">6 AWG (0.0032 Ohm/m)</option>
+                <option value="0.0051" selected>10 AWG (0.0051 Ohm/m)</option>
+                <option value="0.0081">14 AWG (0.0082 Ohm/m)</option>
+                <option value="custom">Custom Resistance...</option>
+            </select>
+        </div>
+        <div id="custom-resistance" style="display:none;">
+            <label for="cable-resistance">Custom Resistance (Ohm/m):</label>
+            <input type="number" id="cable-resistance" step="0.0001" min="0">
         </div>
         <button id="calculate-btn">Calculate Runtime</button>
         <div id="result"></div>
@@ -155,6 +173,34 @@ customConfig.style.display = this.value === 'custom' ? 'block' : 'none';
                 default:
                     alert("Invalid battery arrangement!");
                     return;
+            }
+
+            // Cable Length DeltaV
+            const cableLength = parseFloat(document.getElementById('cable-length').value);
+            const cableGuage = document.getElementById('cable-guage').value);
+            let cableResistance;
+
+            if (cableGuage === 'custom') {
+                cableResistance = parseFloat(document.getElementById('cable-resistance').value);
+                if (isNAN(cableResistance)) {
+                    alert("Please enter a valid custom cable resistance");
+                    return;
+                }
+            } else {
+                cableResistance = parseFloat(cableGauge);
+            }
+
+            // Calculate Current (I)
+            const current = load / (totalV * efficiency);
+            // For AC loads, constant current = load / (totalV * efficiency * powerFactor)
+
+            // Calculate (ΔV)
+            const voltageDrop = current *cableResistance * cableLength * 2;
+
+            // Adjust runtime if voltage drop >5% (optional derating)
+            let runtimeDerating = 1;
+            if (voltageDrop > 0.05 * totalV) {
+                runtimeDerating = 0.95; // 5% penalty if 5% ΔV.
             }
  
             // Calculate runtime
