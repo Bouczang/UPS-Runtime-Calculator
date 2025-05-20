@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>UPS Runtime Calculator</title>
+    <title>Advanced UPS Runtime Calculator</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -72,7 +72,7 @@
 </head>
 <body>
     <div id="ups-calculator">
-        <h2>UPS Runtime Calculator</h2>
+        <h2>Advanced UPS Runtime Calculator</h2>
         
         <div class="config-section">
             <h3>Battery Configuration</h3>
@@ -131,7 +131,7 @@
                     <option value="custom">Custom Resistance...</option>
                 </select>
             </div>
-            <div id="custom-resistance" style="display:none;">
+            <div id="custom-resistance" style="display: none;">
                 <label for="cable-resistance">Custom Resistance (Ω/m):</label>
                 <input type="number" id="cable-resistance" step="0.0001" min="0">
             </div>
@@ -140,19 +140,19 @@
         <button id="calculate-btn">Calculate Runtime</button>
         <div id="result"></div>
     </div>
-    
+ 
     <script>
-        // Helper function to format runtime
-        function formatRuntime(totalMinutes) {
-            totalMinutes = Math.round(totalMinutes);
-            const days = Math.floor(totalMinutes / 1440);
-            const hours = Math.floor((totalMinutes % 1440) / 60);
-            const minutes = totalMinutes % 60;
+        // Helper function to format days, hours, minutes
+        function formatRuntime(minutes) {
+            minutes = Math.round(minutes);
+            const days = Math.floor(minutes / 1440);
+            const hours = Math.floor((minutes % 1440) / 60);
+            const mins = minutes % 60;
             
             let parts = [];
             if (days > 0) parts.push(`${days} day${days !== 1 ? 's' : ''}`);
             if (hours > 0) parts.push(`${hours} hour${hours !== 1 ? 's' : ''}`);
-            if (minutes > 0 || parts.length === 0) parts.push(`${minutes} minute${minutes !== 1 ? 's' : ''}`);
+            if (mins > 0 || parts.length === 0) parts.push(`${mins} minute${mins !== 1 ? 's' : ''}`);
             
             return parts.join(' ');
         }
@@ -169,11 +169,69 @@
                 this.value === 'custom' ? 'block' : 'none';
         });
  
-        // Calculate runtime
-        document.getElementById('calculate-btn').addEventListener('click', calculateRuntime);
+        // Main calculation function
+        document.getElementById('calculate-btn').addEventListener('click', function() {
+            // Get all input values
+            const capacity = parseFloat(document.getElementById('battery-capacity').value);
+            const voltage = parseFloat(document.getElementById('battery-voltage').value);
+            const totalBatteries = parseFloat(document.getElementById('battery-count').value);
+            const load = parseFloat(document.getElementById('load-power').value);
+            const efficiency = parseFloat(document.getElementById('efficiency').value);
+            const arrangement = document.getElementById('arrangement').value;
+            const cableLength = parseFloat(document.getElementById('cable-length').value);
+            const cableSize = document.getElementById('cable-size').value;
  
-        function calculateRuntime() {
-            // [Keep all your existing input collection and validation code]
+            // Validate basic inputs
+            if (isNaN(capacity) || isNaN(voltage) || isNaN(totalBatteries) || isNaN(load) || isNaN(efficiency)) {
+                alert("Please fill in all required fields with valid numbers!");
+                return;
+            }
+ 
+            // Calculate battery configuration
+            let totalV, totalAh;
+            switch (arrangement) {
+                case 'parallel':
+                    totalV = voltage;
+                    totalAh = capacity * totalBatteries;
+                    break;
+                case 'series':
+                    totalV = voltage * totalBatteries;
+                    totalAh = capacity;
+                    break;
+                case 'custom':
+                    const seriesCount = parseFloat(document.getElementById('series-count').value);
+                    const parallelStrings = parseFloat(document.getElementById('parallel-strings').value);
+                    if (isNaN(seriesCount) || isNaN(parallelStrings)) {
+                        alert("Please specify valid series/parallel values!");
+                        return;
+                    }
+                    if (seriesCount * parallelStrings !== totalBatteries) {
+                        alert(`Configuration error: ${seriesCount} series × ${parallelStrings} parallel = ${seriesCount * parallelStrings} batteries, but you entered ${totalBatteries}.`);
+                        return;
+                    }
+                    totalV = voltage * seriesCount;
+                    totalAh = capacity * parallelStrings;
+                    break;
+                default:
+                    alert("Invalid battery arrangement!");
+                    return;
+            }
+ 
+            // Calculate cable voltage drop
+            let cableResistance;
+            if (cableSize === 'custom') {
+                cableResistance = parseFloat(document.getElementById('cable-resistance').value);
+                if (isNaN(cableResistance)) {
+                    alert("Please enter a valid custom cable resistance!");
+                    return;
+                }
+            } else {
+                cableResistance = parseFloat(cableSize);
+            }
+ 
+            const current = load / (totalV * efficiency);
+            const voltageDrop = current * cableResistance * cableLength * 2;
+            const effectiveVoltage = totalV - voltageDrop;
  
             // Calculate runtime (with derating if voltage drop >5%)
             const totalWh = totalV * totalAh * efficiency;
@@ -190,19 +248,14 @@
                 <h3>Battery Bank Configuration</h3>
                 <p>Total Voltage: <strong>${totalV.toFixed(2)}V</strong></p>
                 <p>Total Capacity: <strong>${totalAh.toFixed(2)}Ah</strong></p>
-                <p>Total Energy: <strong>${(totalWh).toFixed(0)}Wh</strong></p>
+                <p>Total Energy: <strong>${totalWh.toFixed(0)}Wh</strong></p>
  
                 <h3>Cable Voltage Drop</h3>
                 <p>Current: <strong>${current.toFixed(2)}A</strong></p>
-                <p>Voltage Drop: <strong>${voltageDrop.toFixed(2)}V</strong> (${((voltageDrop/totalV)*100).toFixed(1)}%)</p>
+                <p>Voltage Drop: <strong>${voltageDrop.toFixed(2)}V</strong> (${(voltageDrop/totalV*100).toFixed(1)}%)</p>
                 <p>Effective Voltage: <strong>${effectiveVoltage.toFixed(2)}V</strong></p>
                 ${voltageDrop > 0.05 * totalV ? "<p class='warning'>Warning: High voltage drop! Consider thicker/shorter cables.</p>" : ""}
  
                 <h3>Estimated Runtime</h3>
                 <p><strong>${formatRuntime(runtimeMinutes)}</strong></p>
-                <p>(${runtimeHours.toFixed(2)} hours / ${Math.round(runtimeMinutes)} minutes)</p>
-            `;
-        }
-    </script>
-</body>
-</html>
+                <p>(${runtimeHours.toFixed(2)} hours / ${Math.round(runtimeMinutes
